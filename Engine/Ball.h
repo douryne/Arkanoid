@@ -9,6 +9,7 @@ class Ball
 public:
 	Ball(const Vec2& posIn, const Vec2& velIn);
 	void Draw(Graphics& gfx);
+	void Update(float dt);
 private:
 	Vec2 pos;
 	Vec2 vel;
