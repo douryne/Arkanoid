@@ -10,8 +10,12 @@ public:
 	Ball(const Vec2& posIn, const Vec2& velIn);
 	void Draw(Graphics& gfx);
 	void Update(float dt);
+	bool CollidingWithWall(const RectF& wall);
+	void ReboundX();
+	void ReboundY();
+	RectF GetRect() const;
 private:
+	static constexpr float radius = 7.0f;
 	Vec2 pos;
 	Vec2 vel;
-	static constexpr float radius = 7.0f;
 };
