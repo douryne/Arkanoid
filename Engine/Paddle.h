@@ -20,7 +20,7 @@ public:
 private:
 	const int wingsWidth = 10;
 	Color wingsColor = Colors::White;
-	Color color = Colors::Cyan;
+	Color color = Colors::Red;
 	float speed = 300.0f;
 	float halfWidth;
 	float halfHeight;
