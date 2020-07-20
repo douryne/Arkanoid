@@ -25,7 +25,7 @@ Game::Game(MainWindow& wnd)
 	:
 	wnd(wnd),
 	gfx(wnd),
-	ball(Vec2(300.0f, 300.0f), Vec2(300.0f, 300.0f)),
+	ball(Vec2(300.0f + 24.0f, 300.0f), Vec2(-300.0f, -300.0f)),
 	walls(0.0f, 0.0f, float(gfx.ScreenWidth), float(gfx.ScreenHeight)),
 	pad(Vec2(400.0f, 550.0f), 50.0f, 8.0f),
 	soundBrick(L"Sounds\\arkbrick.wav"),
@@ -71,13 +71,34 @@ void Game::UpdateModel()
 	{
 		soundPad.Play();
 	}
-	for (Brick& b : bricks)
+	bool collisionHappened = false;
+	float curColDistSq;
+	int curColIdx;
+	for (int i = 0; i < nBricks; ++i)
 	{
-		if (b.CollidingWithBall(ball))
+		if (bricks[i].CheckballCollision(ball))
 		{
-			soundBrick.Play();
-			break;
+			float newColDistSq = (ball.GetPos() - bricks[i].GetCenter()).GetLengthSq();
+			if (collisionHappened)
+			{
+				if (newColDistSq < curColDistSq)
+				{
+					curColDistSq = newColDistSq;
+					curColIdx = i;
+				}
+			}
+			else
+			{
+				curColDistSq = newColDistSq;
+				curColIdx = i;
+				collisionHappened = true;
+			}
 		}
+	}
+	if (collisionHappened)
+	{
+		bricks[curColIdx].ExecuteBallCollision(ball);
+		soundBrick.Play();
 	}
 	ball.CollidingWithWall(walls);
 }
