@@ -63,17 +63,10 @@ void Game::UpdateModel()
 	pad.CollidingWithWall(walls);
 	ball.Update(dt);
 
-	if (ball.CollidingWithWall(walls))
-	{
-		soundPad.Play();
-	}
-	if (pad.CollidingWithBall(ball))
-	{
-		soundPad.Play();
-	}
 	bool collisionHappened = false;
 	float curColDistSq;
 	int curColIdx;
+
 	for (int i = 0; i < nBricks; ++i)
 	{
 		if (bricks[i].CheckballCollision(ball))
@@ -95,12 +88,24 @@ void Game::UpdateModel()
 			}
 		}
 	}
+
 	if (collisionHappened)
 	{
+		pad.ResetCoolDown();
 		bricks[curColIdx].ExecuteBallCollision(ball);
 		soundBrick.Play();
 	}
-	ball.CollidingWithWall(walls);
+
+	if (pad.CollidingWithBall(ball))
+	{
+		soundPad.Play();
+	}
+
+	if (ball.CollidingWithWall(walls))
+	{
+		pad.ResetCoolDown();
+		soundPad.Play();
+	}
 }
 
 void Game::ComposeFrame()

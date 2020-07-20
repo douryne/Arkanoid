@@ -11,11 +11,12 @@ class Paddle
 {
 public:
 	Paddle(Vec2 posIn, float halfWidthIn, float halfHeightIn);
-	bool CollidingWithBall(Ball& ball) const;
+	bool CollidingWithBall(Ball& ball);
 	void CollidingWithWall(const RectF& wall);
 	void Update(const Keyboard& kbd, float dt);
 	void Draw(Graphics& gfx) const;
 	RectF GetRect() const;
+	void ResetCoolDown();
 
 private:
 	const int wingsWidth = 10;
@@ -25,4 +26,5 @@ private:
 	float halfWidth;
 	float halfHeight;
 	Vec2 pos;
+	bool isCoolDown = false;
 };
