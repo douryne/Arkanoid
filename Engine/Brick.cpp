@@ -19,7 +19,14 @@ bool Brick::CollidingWithBall(Ball& ball)
 {
 	if (!destroyed && rect.IsOverlappingWith(ball.GetRect()))
 	{
-		ball.ReboundY();
+		if (ball.GetPos().x >= rect.left && ball.GetPos().x <= rect.right)
+		{
+			ball.ReboundY();
+		}
+		else
+		{
+			ball.ReboundX();
+		}
 		destroyed = true;
 		return true;
 	}
