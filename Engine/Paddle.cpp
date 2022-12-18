@@ -16,13 +16,29 @@ bool Paddle::CollidingWithBall(Ball& ball)
 	{
 		if (rect.IsOverlappingWith(ball.GetRect()))
 		{
-			if (std::signbit(ball.GetVelocity().x) == std::signbit((ball.GetPos() - pos).x))
+			if (std::signbit(ball.GetVelocity().x) == std::signbit((ball.GetPos() - pos).x) || 
+				ball.GetPos().x >= rect.left && ball.GetPos().x <= rect.right)
 			{
-				ball.ReboundY();
-			}
-			else if (ball.GetPos().x >= rect.left && ball.GetPos().x <= rect.right)
-			{
-				ball.ReboundY();
+				Vec2 dir;
+				const float xDifference = ball.GetPos().x - pos.x;
+				const float fixedXComponent = fixedZoneHalfWidth * exitXFactor;
+
+				if (std::abs(xDifference) < fixedZoneHalfWidth)
+				{
+					if (xDifference < 0.0f)
+					{
+						dir = Vec2(-fixedXComponent, -1.0f);
+					}
+					else
+					{
+						dir = Vec2(fixedXComponent, -1.0f);
+					}
+				}
+				else
+				{
+					dir = Vec2(xDifference * exitXFactor, -1.0f);
+				}
+				ball.SetDirection(dir);
 			}
 			else
 			{
@@ -41,19 +57,22 @@ void Paddle::Draw(Graphics& gfx) const
 	gfx.DrawRect(rect, wingsColor);
 	rect.left += wingsWidth;
 	rect.right -= wingsWidth;
+	gfx.DrawRect(rect, Colors::Black);
+	rect.left += 2;
+	rect.right -= 2;
 	gfx.DrawRect(rect, color);
 }
 
-void Paddle::CollidingWithWall(const RectF& wall)
+void Paddle::CollidingWithWall(const Border& border)
 {
 	const RectF rect = GetRect();
-	if (rect.left < wall.left)
+	if (rect.left < border.left + border.borderPadding + border.borderWidth)
 	{
-		pos.x += wall.left - rect.left;
+		pos.x += border.left + border.borderPadding + border.borderWidth - rect.left;
 	}
-	if (rect.right > wall.right)
+	if (rect.right > border.right - border.borderPadding)
 	{
-		pos.x -= rect.right - wall.right;
+		pos.x -= rect.right - border.right + border.borderPadding;
 	}
 }
 

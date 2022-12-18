@@ -2,10 +2,11 @@
 #include "Brick.h"
 #include <iostream>
 
-Brick::Brick(const RectF& rectIn, Color colorIn)
+Brick::Brick(const RectF& rectIn, Color colorIn, int hp)
 	:
 	rect(rectIn),
-	color(colorIn)
+	color(colorIn),
+	brickHp(hp)
 {
 }
 
@@ -28,6 +29,7 @@ void Brick::ExecuteBallCollision(Ball& ball)
 
 	const Vec2 ballPos = ball.GetPos();
 
+
 	if (std::signbit(ball.GetVelocity().x) == std::signbit((ballPos - GetCenter()).x))
 	{
 		ball.ReboundY();
@@ -40,10 +42,22 @@ void Brick::ExecuteBallCollision(Ball& ball)
 	{
 		ball.ReboundX();
 	}
-	destroyed = true;
+	if (brickHp - 500 == 0)
+	{
+		destroyed = true;
+	}
+	else
+	{
+		brickHp -= 500;
+	}
 }
 
 Vec2 Brick::GetCenter() const
 {
 	return rect.GetCenter();
+}
+
+bool Brick::Destroyed() const
+{
+	return destroyed;
 }

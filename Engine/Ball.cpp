@@ -1,10 +1,10 @@
 #include "Ball.h"
 
-Ball::Ball(const Vec2& posIn, const Vec2& velIn)
+Ball::Ball(const Vec2& posIn, const Vec2& dirIn)
 	:
-	pos(posIn),
-	vel(velIn)
+	pos(posIn)
 {
+	SetDirection(dirIn);
 }
 
 void Ball::Draw(Graphics& gfx)
@@ -17,32 +17,34 @@ void Ball::Update(float dt)
 	pos += vel * dt;
 }
 
-bool Ball::CollidingWithWall(const RectF& wall)
+bool Ball::CollidingWithWall(const Border& border)
 {
+	OverlapWithBottomWall = false;
 	bool collided = false;
 	const RectF rect = GetRect();
-	if (rect.left < wall.left)
+	if (rect.left < border.left + border.borderWidth)
 	{
-		pos.x += wall.left - rect.left;
+		pos.x += border.left + border.borderWidth - rect.left;
 		ReboundX();
 		collided = true;
 	}
-	else if (rect.right > wall.right)
+	else if (rect.right > border.right)
 	{
-		pos.x -= rect.right - wall.right;
+		pos.x -= rect.right - border.right;
 		ReboundX();
 		collided = true;
 	}
-	if (rect.top < wall.top)
+	if (rect.top < border.top + border.borderWidth)
 	{
-		pos.y += wall.top - rect.top;
+		pos.y += border.top + border.borderWidth - rect.top;
 		ReboundY();
 		collided = true;
 	}
-	else if (rect.bottom > wall.bottom)
+	else if (rect.bottom + border.borderWidth > border.bottom)
 	{
-		pos.y -= rect.bottom - wall.bottom;
+		pos.y -= rect.bottom + border.borderWidth - border.bottom;
 		ReboundY();
+		OverlapWithBottomWall = true;
 		collided = true;
 	}
 	return collided;
@@ -71,4 +73,9 @@ Vec2 Ball::GetVelocity()
 Vec2 Ball::GetPos()
 {
 	return pos;
+}
+
+void Ball::SetDirection(const Vec2& dir)
+{
+	vel = dir.GetNormalized() * speed;
 }

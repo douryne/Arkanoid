@@ -25,15 +25,19 @@ Game::Game(MainWindow& wnd)
 	:
 	wnd(wnd),
 	gfx(wnd),
-	ball(Vec2(300.0f + 24.0f, 300.0f), Vec2(-300.0f, -300.0f)),
+	ball(Vec2(300.0f + 24.0f, 300.0f), Vec2(-1.0f, -1.0f)),
 	walls(0.0f, 0.0f, float(gfx.ScreenWidth), float(gfx.ScreenHeight)),
-	pad(Vec2(400.0f, 550.0f), 50.0f, 8.0f),
+	pad(Vec2(400.0f, 500.0f), 50.0f, 10.0f),
+	padlive1(Vec2(50.0f, 100.0f), 30.0f, 7.0f),
+	padlive2(Vec2(50.0f, 150.0f), 30.0f, 7.0f),
+	padlive3(Vec2(50.0f, 200.0f), 30.0f, 7.0f),
 	soundBrick(L"Sounds\\arkbrick.wav"),
 	soundPad(L"Sounds\\arkpad.wav")
 {
-	const Color colors[4] = { Colors::White, Colors::Blue, Colors::Red, Colors::Cyan };
 
-	const Vec2 topLeft(40.0f, 40.0f);
+	const Color colors[nBricksDown] = { Colors::Yellow, Colors::White, Colors::Cyan, Colors::Magenta, Colors::Green };
+
+	const Vec2 topLeft(130.0f, 60.0f);
 	
 	int i = 0;
 
@@ -42,7 +46,14 @@ Game::Game(MainWindow& wnd)
 		const Color c = colors[y];
 		for (int x = 0; x < nBricksAcross; x++)
 		{
-			bricks[i] = Brick(RectF(topLeft + Vec2(x * brickWidth, y * brickHeight), brickWidth, brickHeight ), c);
+			if (y == 4)
+			{
+				bricks[i] = Brick(RectF(topLeft + Vec2(x * 58.0f, y * 28.0f), brickWidth, brickHeight), c, 1000);
+			}
+			else
+			{
+				bricks[i] = Brick(RectF(topLeft + Vec2(x * 58.0f, y * 28.0f), brickWidth, brickHeight), c, 500);
+			}
 			i++;
 		}
 	}
@@ -64,61 +75,130 @@ void Game::Go()
 
 void Game::UpdateModel(float dt)
 {
-	pad.Update(wnd.kbd, dt);
-	pad.CollidingWithWall(walls);
-	ball.Update(dt);
-
 	bool collisionHappened = false;
 	float curColDistSq;
 	int curColIdx;
 
-	for (int i = 0; i < nBricks; ++i)
+	if (isStarted)
 	{
-		if (bricks[i].CheckballCollision(ball))
+		if (!isGameOver)
 		{
-			float newColDistSq = (ball.GetPos() - bricks[i].GetCenter()).GetLengthSq();
-			if (collisionHappened)
+			pad.Update(wnd.kbd, dt);
+			pad.CollidingWithWall(brd);
+			ball.Update(dt);
+
+			for (int i = 0; i < nBricks; ++i)
 			{
-				if (newColDistSq < curColDistSq)
+				if (bricks[i].CheckballCollision(ball))
 				{
-					curColDistSq = newColDistSq;
-					curColIdx = i;
+					float newColDistSq = (ball.GetPos() - bricks[i].GetCenter()).GetLengthSq();
+					if (collisionHappened)
+					{
+						if (newColDistSq < curColDistSq)
+						{
+							curColDistSq = newColDistSq;
+							curColIdx = i;
+						}
+					}
+					else
+					{
+						curColDistSq = newColDistSq;
+						curColIdx = i;
+						collisionHappened = true;
+					}
 				}
 			}
-			else
+
+			if (collisionHappened)
 			{
-				curColDistSq = newColDistSq;
-				curColIdx = i;
-				collisionHappened = true;
+				pad.ResetCoolDown();
+				bricks[curColIdx].ExecuteBallCollision(ball);
+				if (bricks[curColIdx].Destroyed())
+				{
+					countOfDestroyedBricks++;
+				}
+				soundBrick.Play();
+			}
+
+			if (countOfDestroyedBricks == nBricks)
+			{
+				isStarted = false;
+			}
+
+			if (pad.CollidingWithBall(ball))
+			{
+				soundPad.Play();
+			}
+
+			if (ball.CollidingWithWall(brd))
+			{
+				if (ball.OverlapWithBottomWall)
+				{
+					if (lives <= 1)
+					{
+						isGameOver = true;
+					}
+					else
+					{
+						lives--;
+						pad.ResetCoolDown();
+						soundPad.Play();
+					}
+				}
+				else
+				{
+					pad.ResetCoolDown();
+					soundPad.Play();
+				}
 			}
 		}
 	}
-
-	if (collisionHappened)
+	else
 	{
-		pad.ResetCoolDown();
-		bricks[curColIdx].ExecuteBallCollision(ball);
-		soundBrick.Play();
+		if (wnd.kbd.KeyIsPressed(VK_RETURN))
+		{
+			isStarted = true;
+		}
 	}
-
-	if (pad.CollidingWithBall(ball))
-	{
-		soundPad.Play();
-	}
-
-	if (ball.CollidingWithWall(walls))
-	{
-		pad.ResetCoolDown();
-		soundPad.Play();
-	}
+	
 }
 
 void Game::ComposeFrame()
 {
-	ball.Draw(gfx);
-	for (Brick& b : bricks)
+	if (!isStarted)
 	{
-		b.Draw(gfx);
+		SpriteCodex::DrawTitle(gfx, 325, 211);
 	}
-	pad.Draw(gfx);
+	else
+	{
+		if (isGameOver)
+		{
+			SpriteCodex::DrawGameOver(gfx, 358, 268);
+		}
+		else
+		{
+			for (Brick& b : bricks)
+			{
+				b.Draw(gfx);
+			}
+			ball.Draw(gfx);
+			pad.Draw(gfx);
+			brd.DrawBorder(gfx);
+			if (lives >= 3)
+			{
+				padlive1.Draw(gfx);
+				padlive2.Draw(gfx);
+				padlive3.Draw(gfx);
+			}
+			else if(lives >= 2)
+			{
+				padlive1.Draw(gfx);
+				padlive2.Draw(gfx);
+			}
+			else
+			{
+				padlive1.Draw(gfx);
+			}
+		}
+	}
 }

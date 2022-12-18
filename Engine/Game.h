@@ -29,6 +29,7 @@
 #include "Brick.h"
 #include "Paddle.h"
 #include "Sound.h"
+#include "Border.h"
 
 class Game
 {
@@ -46,18 +47,27 @@ private:
 private:
 	MainWindow& wnd;
 	Graphics gfx;
-	static constexpr float brickWidth = 40.0f;
-	static constexpr float brickHeight = 24.0f;
-	static constexpr int nBricksAcross = 18;
-	static constexpr int nBricksDown = 4;
+	static constexpr float brickWidth = 60.0f;
+	static constexpr float brickHeight = 30.0f;
+	static constexpr int nBricksAcross = 10;
+	static constexpr int nBricksDown = 5;
 	static constexpr int nBricks = nBricksAcross * nBricksDown;
 	FrameTimer ft;
 	Ball ball;
 	Brick bricks[nBricks];
+	Brick brk;
 	RectF walls;
 	Paddle pad;
+	Paddle padlive1;
+	Paddle padlive2;
+	Paddle padlive3;
+	Border brd;
 	Sound soundPad;
 	Sound soundBrick;
+	bool isStarted = false;
+	bool isGameOver = false;
+	int lives = 3;
+	int countOfDestroyedBricks = 0;
 	/********************************/
 	/*  User Variables              */
 	/********************************/

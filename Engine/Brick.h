@@ -9,14 +9,16 @@ class Brick
 {
 public:
 	Brick() = default;
-	Brick(const RectF& rectIn, Color colorIn);
+	Brick(const RectF& rectIn, Color colorIn, int hp);
 	void Draw(Graphics& gfx);
 	bool CheckballCollision(const Ball& ball) const;
 	void ExecuteBallCollision(Ball& ball);
 	Vec2 GetCenter() const;
+	bool Destroyed() const;
 private:
 	static constexpr float padding = 2.0f;
 	RectF rect;
 	Color color;
 	bool destroyed = false;
+	int brickHp;
 };
